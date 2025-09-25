@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import RealFileExplorer from "./components/RealFileExplorer";
+import SettingsPanel from "./components/SettingsPanel";
+import { soundManager } from "./utils/sounds";
 
 export default function Home() {
   const [currentCommand, setCurrentCommand] = useState("");
@@ -24,6 +27,30 @@ export default function Home() {
   const [showVideo, setShowVideo] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMusicLoading, setIsMusicLoading] = useState(false);
+  const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(false);
+  const [fileExplorerPosition, setFileExplorerPosition] = useState({ x: 100, y: 100 });
+  const [fileExplorerSize, setFileExplorerSize] = useState({ width: 800, height: 600 });
+  const [isFileExplorerMinimized, setIsFileExplorerMinimized] = useState(false);
+  const [isFileExplorerMaximized, setIsFileExplorerMaximized] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsPosition, setSettingsPosition] = useState({ x: 200, y: 150 });
+  const [settingsSize, setSettingsSize] = useState({ width: 400, height: 500 });
+  const [isSettingsMinimized, setIsSettingsMinimized] = useState(false);
+  const [isSettingsMaximized, setIsSettingsMaximized] = useState(false);
+  const [theme, setTheme] = useState('dark');
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [shortcutPositions, setShortcutPositions] = useState({
+    terminal: { x: 32, y: 32 },
+    fileExplorer: { x: 128, y: 32 },
+    settings: { x: 224, y: 32 }
+  });
+  const [draggingShortcut, setDraggingShortcut] = useState<string | null>(null);
+  const [shortcutDragOffset, setShortcutDragOffset] = useState({ x: 0, y: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+  const [selectedShortcuts, setSelectedShortcuts] = useState<Set<string>>(new Set());
+  const [isDraggingSelection, setIsDraggingSelection] = useState(false);
+  const [selectionDragOffset, setSelectionDragOffset] = useState({ x: 0, y: 0 });
+  const [hasMultiDragged, setHasMultiDragged] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +62,7 @@ export default function Home() {
   skills    - See my technical skills
   contact   - Get in touch
   hobbies   - My interests and activities
+  files     - Open file explorer
   secret  - Are you brave enough to discover the secret?
   date      - Current date and time
   clear     - Clear the terminal
@@ -71,6 +99,17 @@ export default function Home() {
   💻 Coding
   `,
     
+    files: () => {
+      setIsFileExplorerOpen(true);
+      if (soundEnabled) soundManager.playWindowOpen();
+      return "File Explorer opened! Browse and download my portfolio files.";
+    },
+    settings: () => {
+      setIsSettingsOpen(true);
+      if (soundEnabled) soundManager.playWindowOpen();
+      return "Settings opened! Customize your experience.";
+    },
+    
     secret: () => {
       setShowVideo(true);
     },
@@ -86,6 +125,7 @@ export default function Home() {
       setCommandHistory([]);
       setOutputHistory([]);
       setHistoryIndex(-1);
+      if (soundEnabled) soundManager.playClick();
       return "";
     },
     
@@ -138,6 +178,14 @@ export default function Home() {
 
     if (trimmedCmd === "hobbies") {
       setOutputHistory(prev => [...prev, commands.hobbies]);
+      return;
+    }
+
+    if (trimmedCmd === "files") {
+      const result = commands.files();
+      if (typeof result === 'string') {
+        setOutputHistory(prev => [...prev, result]);
+      }
       return;
     }
 
@@ -279,6 +327,7 @@ export default function Home() {
   // Window control functions
   const handleMinimize = () => {
     setIsMinimized(true);
+    if (soundEnabled) soundManager.playClick();
   };
 
   const handleMaximize = () => {
@@ -291,11 +340,17 @@ export default function Home() {
       // Save current size and position
       setOriginalSize(size);
       setOriginalPosition(position);
-      // Maximize to full screen
-      setSize({ width: window.innerWidth, height: window.innerHeight });
-      setPosition({ x: 0, y: 0 });
+      // Maximize but leave space for taskbar and window controls
+      const taskbarHeight = 60; // Height of the taskbar
+      const margin = 20; // Margin from edges
+      setSize({ 
+        width: window.innerWidth - (margin * 2), 
+        height: window.innerHeight - taskbarHeight - (margin * 2) 
+      });
+      setPosition({ x: margin, y: margin });
       setIsMaximized(true);
     }
+    if (soundEnabled) soundManager.playClick();
   };
 
   const handleClose = () => {
@@ -305,17 +360,196 @@ export default function Home() {
     setHistoryIndex(-1);
     setCurrentCommand("");
     setIsClosed(true);
+    if (soundEnabled) soundManager.playWindowClose();
   };
 
   const handleRestore = () => {
     setIsMinimized(false);
+    if (soundEnabled) soundManager.playWindowOpen();
+  };
+
+  // File Explorer handlers
+  const handleFileExplorerMinimize = () => {
+    setIsFileExplorerMinimized(true);
+  };
+
+  const handleFileExplorerMaximize = () => {
+    if (isFileExplorerMaximized) {
+      // Restore to original size and position
+      setFileExplorerSize({ width: 800, height: 600 });
+      setFileExplorerPosition({ x: 100, y: 100 });
+      setIsFileExplorerMaximized(false);
+    } else {
+      // Maximize but leave space for taskbar and window controls
+      const taskbarHeight = 60; // Height of the taskbar
+      const margin = 20; // Margin from edges
+      setFileExplorerSize({ 
+        width: window.innerWidth - (margin * 2), 
+        height: window.innerHeight - taskbarHeight - (margin * 2) 
+      });
+      setFileExplorerPosition({ x: margin, y: margin });
+      setIsFileExplorerMaximized(true);
+    }
+    if (soundEnabled) soundManager.playClick();
+  };
+
+  // Settings handlers
+  const handleSettingsMinimize = () => {
+    setIsSettingsMinimized(true);
+  };
+
+  const handleSettingsMaximize = () => {
+    if (isSettingsMaximized) {
+      // Restore to original size and position
+      setSettingsSize({ width: 400, height: 500 });
+      setSettingsPosition({ x: 200, y: 150 });
+      setIsSettingsMaximized(false);
+    } else {
+      // Maximize but leave space for taskbar and window controls
+      const taskbarHeight = 60; // Height of the taskbar
+      const margin = 20; // Margin from edges
+      setSettingsSize({ 
+        width: window.innerWidth - (margin * 2), 
+        height: window.innerHeight - taskbarHeight - (margin * 2) 
+      });
+      setSettingsPosition({ x: margin, y: margin });
+      setIsSettingsMaximized(true);
+    }
+    if (soundEnabled) soundManager.playClick();
+  };
+
+  // Shortcut drag handlers
+  const handleShortcutMouseDown = (e: React.MouseEvent, shortcutType: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // If this shortcut is part of a multi-selection, handle it as multi-drag
+    if (selectedShortcuts.has(shortcutType) && selectedShortcuts.size > 1) {
+      handleSelectedShortcutsMouseDown(e);
+      return;
+    }
+    
+    // Otherwise, handle as single shortcut drag
+    setDraggingShortcut(shortcutType);
+    setHasDragged(false);
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setShortcutDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleShortcutMouseMove = (e: React.MouseEvent) => {
+    if (draggingShortcut) {
+      e.preventDefault();
+      setHasDragged(true);
+      const newX = e.clientX - shortcutDragOffset.x;
+      const newY = e.clientY - shortcutDragOffset.y;
+      
+      setShortcutPositions(prev => ({
+        ...prev,
+        [draggingShortcut]: { x: newX, y: newY }
+      }));
+    }
+  };
+
+  const handleShortcutMouseUp = () => {
+    setDraggingShortcut(null);
+    // Reset hasDragged after a short delay to allow click detection
+    setTimeout(() => setHasDragged(false), 100);
+  };
+
+  // Check if a shortcut is within the selection area
+  const isShortcutInSelection = (shortcutType: string) => {
+    if (!isSelecting) return false;
+    
+    const shortcutPos = shortcutPositions[shortcutType as keyof typeof shortcutPositions];
+    const selectionLeft = Math.min(selectionStart.x, selectionEnd.x);
+    const selectionTop = Math.min(selectionStart.y, selectionEnd.y);
+    const selectionRight = Math.max(selectionStart.x, selectionEnd.x);
+    const selectionBottom = Math.max(selectionStart.y, selectionEnd.y);
+    
+    // Check if shortcut center is within selection area (with some padding for the shortcut size)
+    const shortcutCenterX = shortcutPos.x + 48; // 48px is half the shortcut width
+    const shortcutCenterY = shortcutPos.y + 48; // 48px is half the shortcut height
+    
+    return shortcutCenterX >= selectionLeft && 
+           shortcutCenterX <= selectionRight && 
+           shortcutCenterY >= selectionTop && 
+           shortcutCenterY <= selectionBottom;
+  };
+
+  // Handle selection end to select shortcuts
+  const handleSelectionEnd = () => {
+    if (isSelecting) {
+      const newSelectedShortcuts = new Set<string>();
+      
+      // Check each shortcut
+      ['terminal', 'fileExplorer', 'settings'].forEach(shortcutType => {
+        if (isShortcutInSelection(shortcutType)) {
+          newSelectedShortcuts.add(shortcutType);
+        }
+      });
+      
+      setSelectedShortcuts(newSelectedShortcuts);
+    }
+    setIsSelecting(false);
+  };
+
+  // Handle dragging selected shortcuts
+  const handleSelectedShortcutsMouseDown = (e: React.MouseEvent) => {
+    if (selectedShortcuts.size > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingSelection(true);
+      setSelectionDragOffset({
+        x: e.clientX,
+        y: e.clientY
+      });
+    }
+  };
+
+  const handleSelectedShortcutsMouseMove = (e: React.MouseEvent) => {
+    if (isDraggingSelection && selectedShortcuts.size > 0) {
+      e.preventDefault();
+      setHasMultiDragged(true);
+      const deltaX = e.clientX - selectionDragOffset.x;
+      const deltaY = e.clientY - selectionDragOffset.y;
+      
+      setShortcutPositions(prev => {
+        const newPositions = { ...prev };
+        selectedShortcuts.forEach(shortcutType => {
+          const currentPos = newPositions[shortcutType as keyof typeof newPositions];
+          newPositions[shortcutType as keyof typeof newPositions] = {
+            x: currentPos.x + deltaX,
+            y: currentPos.y + deltaY
+          };
+        });
+        return newPositions;
+      });
+      
+      setSelectionDragOffset({
+        x: e.clientX,
+        y: e.clientY
+      });
+    }
+  };
+
+  const handleSelectedShortcutsMouseUp = () => {
+    setIsDraggingSelection(false);
+    // Reset hasMultiDragged after a short delay to allow click detection
+    setTimeout(() => setHasMultiDragged(false), 100);
   };
 
   // Selection area functionality
   const handleSelectionMouseDown = (e: React.MouseEvent) => {
-    // Only start selection if clicking on background (not on terminal or shortcut)
+    // Only start selection if clicking on background (not on terminal, shortcut, or file explorer)
     if (!(e.target as HTMLElement).closest('.terminal-window') && 
-        !(e.target as HTMLElement).closest('.desktop-shortcut')) {
+        !(e.target as HTMLElement).closest('.desktop-shortcut') &&
+        !(e.target as HTMLElement).closest('.file-explorer-window') &&
+        !(e.target as HTMLElement).closest('.settings-window')) {
+      // Clear existing selection when starting new selection
+      setSelectedShortcuts(new Set());
       setIsSelecting(true);
       setSelectionStart({ x: e.clientX, y: e.clientY });
       setSelectionEnd({ x: e.clientX, y: e.clientY });
@@ -329,7 +563,7 @@ export default function Home() {
   };
 
   const handleSelectionMouseUp = () => {
-    setIsSelecting(false);
+    handleSelectionEnd();
     // Clear selection after a short delay
     setTimeout(() => {
       setSelectionStart({ x: 0, y: 0 });
@@ -387,10 +621,89 @@ export default function Home() {
     }
   }, [isMusicLoading]);
 
+  // Add global mouse event listeners for shortcut dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (draggingShortcut) {
+        e.preventDefault();
+        setHasDragged(true);
+        const newX = e.clientX - shortcutDragOffset.x;
+        const newY = e.clientY - shortcutDragOffset.y;
+        
+        setShortcutPositions(prev => ({
+          ...prev,
+          [draggingShortcut]: { x: newX, y: newY }
+        }));
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setDraggingShortcut(null);
+      // Reset hasDragged after a short delay to allow click detection
+      setTimeout(() => setHasDragged(false), 100);
+    };
+
+    if (draggingShortcut) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [draggingShortcut, shortcutDragOffset]);
+
+  // Add global mouse event listeners for selected shortcuts dragging
+  useEffect(() => {
+    const handleGlobalSelectedMouseMove = (e: MouseEvent) => {
+      if (isDraggingSelection && selectedShortcuts.size > 0) {
+        e.preventDefault();
+        setHasMultiDragged(true);
+        const deltaX = e.clientX - selectionDragOffset.x;
+        const deltaY = e.clientY - selectionDragOffset.y;
+        
+        setShortcutPositions(prev => {
+          const newPositions = { ...prev };
+          selectedShortcuts.forEach(shortcutType => {
+            const currentPos = newPositions[shortcutType as keyof typeof newPositions];
+            newPositions[shortcutType as keyof typeof newPositions] = {
+              x: currentPos.x + deltaX,
+              y: currentPos.y + deltaY
+            };
+          });
+          return newPositions;
+        });
+        
+        setSelectionDragOffset({
+          x: e.clientX,
+          y: e.clientY
+        });
+      }
+    };
+
+    const handleGlobalSelectedMouseUp = () => {
+      setIsDraggingSelection(false);
+      // Reset hasMultiDragged after a short delay to allow click detection
+      setTimeout(() => setHasMultiDragged(false), 100);
+    };
+
+    if (isDraggingSelection) {
+      document.addEventListener('mousemove', handleGlobalSelectedMouseMove);
+      document.addEventListener('mouseup', handleGlobalSelectedMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalSelectedMouseMove);
+      document.removeEventListener('mouseup', handleGlobalSelectedMouseUp);
+    };
+  }, [isDraggingSelection, selectedShortcuts, selectionDragOffset]);
+
 
   return (
     <div 
       className={`min-h-screen text-purple-400 font-mono relative wallpaper-bg ${isSelecting ? 'selecting' : ''}`}
+      data-theme={theme}
       onMouseDown={handleSelectionMouseDown}
     >
       {/* Background Overlay */}
@@ -399,24 +712,43 @@ export default function Home() {
       {/* Selection Area */}
       {isSelecting && (
         <div
-          className="absolute border-2 border-purple-400 pointer-events-none z-30"
+          className="absolute selection-area pointer-events-none z-30"
           style={{
             left: Math.min(selectionStart.x, selectionEnd.x),
             top: Math.min(selectionStart.y, selectionEnd.y),
             width: Math.abs(selectionEnd.x - selectionStart.x),
             height: Math.abs(selectionEnd.y - selectionStart.y),
-            backgroundColor: 'rgba(168, 85, 247, 0.2)',
           }}
         />
       )}
       
-          {/* Desktop Shortcut - always visible */}
-          <div className="fixed top-8 left-8 z-40 desktop-shortcut">
+          {/* Desktop Shortcuts - always visible */}
+          <div 
+            className={`fixed z-40 desktop-shortcut ${draggingShortcut === 'terminal' ? 'dragging' : ''} ${selectedShortcuts.has('terminal') ? 'selected' : ''}`}
+            style={{ 
+              left: shortcutPositions.terminal.x, 
+              top: shortcutPositions.terminal.y 
+            }}
+          >
             <div 
-              className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-700 transition-colors flex flex-col items-center space-y-3 group shadow-lg"
-              onClick={() => {
-                setIsClosed(false);
-                setIsMinimized(false);
+              className={`rounded-lg p-6 transition-colors flex flex-col items-center space-y-3 group shadow-lg ${
+                isDraggingSelection ? 'cursor-grabbing' : 
+                draggingShortcut === 'terminal' ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              style={{ backgroundColor: 'var(--shortcut-bg)' }}
+              onMouseDown={(e) => handleShortcutMouseDown(e, 'terminal')}
+              onClick={(e) => {
+                if (!draggingShortcut && !hasDragged && !isDraggingSelection && !hasMultiDragged) {
+                  if (isMinimized) {
+                    // Restore if minimized
+                    setIsMinimized(false);
+                  } else {
+                    // Open if closed
+                    setIsClosed(false);
+                    setIsMinimized(false);
+                  }
+                  if (soundEnabled) soundManager.playClick();
+                }
               }}
               title="Open Terminal"
             >
@@ -427,9 +759,136 @@ export default function Home() {
             </div>
           </div>
 
+          {/* File Explorer Shortcut */}
+          <div 
+            className={`fixed z-40 desktop-shortcut ${draggingShortcut === 'fileExplorer' ? 'dragging' : ''} ${selectedShortcuts.has('fileExplorer') ? 'selected' : ''}`}
+            style={{ 
+              left: shortcutPositions.fileExplorer.x, 
+              top: shortcutPositions.fileExplorer.y 
+            }}
+          >
+            <div 
+              className={`rounded-lg p-6 transition-colors flex flex-col items-center space-y-3 group shadow-lg ${
+                isDraggingSelection ? 'cursor-grabbing' : 
+                draggingShortcut === 'fileExplorer' ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              style={{ backgroundColor: 'var(--shortcut-bg)' }}
+              onMouseDown={(e) => handleShortcutMouseDown(e, 'fileExplorer')}
+              onClick={(e) => {
+                if (!draggingShortcut && !hasDragged && !isDraggingSelection && !hasMultiDragged) {
+                  if (isFileExplorerMinimized) {
+                    // Restore if minimized
+                    setIsFileExplorerMinimized(false);
+                  } else {
+                    // Open if closed
+                    setIsFileExplorerOpen(true);
+                  }
+                  if (soundEnabled) soundManager.playClick();
+                }
+              }}
+              title="Open File Explorer"
+            >
+              <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-600 transition-colors">
+                <div className="text-yellow-400 text-3xl">📁</div>
+              </div>
+              <span className="text-sm text-gray-300 text-center font-medium">Files</span>
+            </div>
+          </div>
+
+          {/* Settings Shortcut */}
+          <div 
+            className={`fixed z-40 desktop-shortcut ${draggingShortcut === 'settings' ? 'dragging' : ''} ${selectedShortcuts.has('settings') ? 'selected' : ''}`}
+            style={{ 
+              left: shortcutPositions.settings.x, 
+              top: shortcutPositions.settings.y 
+            }}
+          >
+            <div 
+              className={`rounded-lg p-6 transition-colors flex flex-col items-center space-y-3 group shadow-lg ${
+                isDraggingSelection ? 'cursor-grabbing' : 
+                draggingShortcut === 'settings' ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              style={{ backgroundColor: 'var(--shortcut-bg)' }}
+              onMouseDown={(e) => handleShortcutMouseDown(e, 'settings')}
+              onClick={(e) => {
+                if (!draggingShortcut && !hasDragged && !isDraggingSelection && !hasMultiDragged) {
+                  if (isSettingsMinimized) {
+                    // Restore if minimized
+                    setIsSettingsMinimized(false);
+                  } else {
+                    // Open if closed
+                    setIsSettingsOpen(true);
+                  }
+                  if (soundEnabled) soundManager.playClick();
+                }
+              }}
+              title="Open Settings"
+            >
+              <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-600 transition-colors">
+                <div className="text-blue-400 text-3xl">⚙️</div>
+              </div>
+              <span className="text-sm text-gray-300 text-center font-medium">Settings</span>
+            </div>
+          </div>
+
+          {/* Taskbar */}
+          <div className="fixed bottom-0 left-0 right-0 taskbar z-50 p-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {/* Terminal taskbar item */}
+                {isMinimized && (
+                  <button
+                    onClick={handleRestore}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-300 flex items-center gap-2 transition-colors"
+                    title="Restore Terminal"
+                  >
+                    <span className="text-purple-400"></span>
+                    Terminal
+                  </button>
+                )}
+                
+                {/* File Explorer taskbar item */}
+                {isFileExplorerMinimized && (
+                  <button
+                  onClick={() => {
+                    setIsFileExplorerMinimized(false);
+                    if (soundEnabled) soundManager.playWindowOpen();
+                  }}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-300 flex items-center gap-2 transition-colors"
+                    title="Restore File Explorer"
+                  >
+                    <span className="text-yellow-400">📁</span>
+                    File Explorer
+                  </button>
+                )}
+                
+                {/* Settings taskbar item */}
+                {isSettingsMinimized && (
+                  <button
+                  onClick={() => {
+                    setIsSettingsMinimized(false);
+                    if (soundEnabled) soundManager.playWindowOpen();
+                  }}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-300 flex items-center gap-2 transition-colors"
+                    title="Restore Settings"
+                  >
+                    <span className="text-blue-400">⚙️</span>
+                    Settings
+                  </button>
+                )}
+              </div>
+              
+              {/* System info */}
+              <div className="flex items-center gap-4 text-sm text-gray-400">
+                <span>Portfolio OS v1.0</span>
+                <span>{new Date().toLocaleTimeString()}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Music Player Widget - top right */}
           <div className="fixed top-8 right-8 z-40">
-            <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700" style={{ padding: '10px' }}>
+            <div className="music-widget rounded-lg shadow-lg" style={{ padding: '10px' }}>
               <div className="flex items-center" style={{ gap: '20px' }}>
                 <button
                   onClick={() => {
@@ -441,7 +900,11 @@ export default function Home() {
                       setIsMusicLoading(false);
                     }
                   }}
-                  className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-500 transition-colors"
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--foreground)',
+                    color: 'var(--background)'
+                  }}
                   title={isMusicLoading ? "Loading..." : isMusicPlaying ? "Pause Music" : "Play Music"}
                   disabled={isMusicLoading}
                 >
@@ -454,21 +917,21 @@ export default function Home() {
                   )}
                 </button>
                 <div className="flex items-center space-x-3">
-                  <div className="text-sm text-gray-300">
+                  <div className="text-sm" style={{ color: 'var(--music-text)' }}>
                     <div className="font-medium">Lofi Hip Hop</div>
-                    <div className="text-gray-400 text-xs">24/7 Stream</div>
+                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>24/7 Stream</div>
                   </div>
                   {/* Soundwave Animation */}
                   {isMusicPlaying && (
                     <div className="flex items-center space-x-1" style={{ height: '20px', alignItems: 'flex-end', paddingLeft: '10px' }}>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '0ms', height: '12px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '150ms', height: '16px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '300ms', height: '8px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '450ms', height: '20px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '600ms', height: '14px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '750ms', height: '18px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '900ms', height: '10px' }}></div>
-                      <div className="w-1 bg-purple-400 rounded-full soundwave-bar" style={{ animationDelay: '1050ms', height: '12px' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '0ms', height: '12px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '150ms', height: '16px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '300ms', height: '8px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '450ms', height: '20px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '600ms', height: '14px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '750ms', height: '18px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '900ms', height: '10px', backgroundColor: 'var(--foreground)' }}></div>
+                      <div className="w-1 rounded-full soundwave-bar" style={{ animationDelay: '1050ms', height: '12px', backgroundColor: 'var(--foreground)' }}></div>
                     </div>
                   )}
                 </div>
@@ -490,24 +953,13 @@ export default function Home() {
             ></iframe>
           )}
       
-      {/* Minimized state - show small bar */}
-      {isMinimized && !isClosed ? (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-          <div 
-            className="bg-gray-800 rounded-lg px-6 py-3 cursor-pointer hover:bg-gray-700 transition-colors flex items-center space-x-3 shadow-lg"
-            onClick={handleRestore}
-          >
-            <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
-            <span className="text-base font-medium">terminal</span>
-          </div>
-        </div>
-      ) : !isClosed && (
+      {!isClosed && (
         /* Draggable Terminal Window */
         <div
         ref={terminalRef}
         className={`fixed bg-gray-900 rounded-lg shadow-2xl border border-gray-700 terminal-window ${
           isDragging ? 'cursor-grabbing dragging' : 'cursor-move'
-        }`}
+        } ${isMinimized ? 'window-minimizing' : ''} ${isMaximized ? 'window-maximizing' : ''} window-opening`}
         style={{
           left: position.x,
           top: position.y,
@@ -520,42 +972,45 @@ export default function Home() {
         onDoubleClick={handleDoubleClick}
       >
         {/* Terminal Header */}
-        <div className="terminal-header bg-gray-800 rounded-t-lg px-4 py-2 flex items-center justify-between select-none">
+        <div className="terminal-header rounded-t-lg px-4 py-2 flex items-center justify-between select-none" style={{ backgroundColor: 'var(--button-bg)' }}>
           <div className="flex items-center gap-2">
             <div className="w-1"></div>
             <div 
-              className="w-4 h-4 bg-red-500 rounded-full cursor-pointer hover:bg-red-400 transition-colors flex items-center justify-center group relative"
+              className="w-4 h-4 rounded-full cursor-pointer transition-colors flex items-center justify-center group relative"
+              style={{ backgroundColor: '#dc2626' }}
               onClick={handleClose}
               title="Close"
             >
               <span className="text-red-900 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">×</span>
             </div>
             <div 
-              className="w-4 h-4 bg-yellow-500 rounded-full cursor-pointer hover:bg-yellow-400 transition-colors flex items-center justify-center group relative"
+              className="w-4 h-4 rounded-full cursor-pointer transition-colors flex items-center justify-center group relative"
+              style={{ backgroundColor: '#ca8a04' }}
               onClick={handleMinimize}
               title="Minimize"
             >
               <span className="text-yellow-900 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">−</span>
             </div>
             <div 
-              className="w-4 h-4 bg-green-500 rounded-full cursor-pointer hover:bg-green-400 transition-colors flex items-center justify-center group relative"
+              className="w-4 h-4 rounded-full cursor-pointer transition-colors flex items-center justify-center group relative"
+              style={{ backgroundColor: '#16a34a' }}
               onClick={handleMaximize}
               title={isMaximized ? "Restore" : "Maximize"}
             >
               <span className="text-green-900 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isMaximized ? "⧉" : "□"}
+                {isMaximized ? "□" : "□"}
               </span>
             </div>
           </div>
           <span className="text-gray-300 text-sm font-medium">
-            terminal
+            Terminal
           </span>
           <div className="w-16"></div>
         </div>
 
             {/* Terminal Body */}
             <div 
-              className="terminal-body bg-gray-900 rounded-b-lg p-6 overflow-y-auto relative"
+              className="terminal-body terminal-content rounded-b-lg p-6 overflow-y-auto relative"
               style={{ height: `${size.height - 60}px` }}
             >
           {/* Welcome Message */}
@@ -655,6 +1110,46 @@ export default function Home() {
         ></div>
       </div>
       )}
+
+      {/* Real File Explorer */}
+      <RealFileExplorer
+        isOpen={isFileExplorerOpen && !isFileExplorerMinimized}
+        onClose={() => {
+          setIsFileExplorerOpen(false);
+        }}
+        position={fileExplorerPosition}
+        onPositionChange={setFileExplorerPosition}
+        size={fileExplorerSize}
+        onSizeChange={setFileExplorerSize}
+        isMinimized={isFileExplorerMinimized}
+        onMinimize={handleFileExplorerMinimize}
+        isMaximized={isFileExplorerMaximized}
+        onMaximize={handleFileExplorerMaximize}
+      />
+
+      <SettingsPanel
+        isOpen={isSettingsOpen && !isSettingsMinimized}
+        onClose={() => {
+          setIsSettingsOpen(false);
+        }}
+        position={settingsPosition}
+        onPositionChange={setSettingsPosition}
+        size={settingsSize}
+        onSizeChange={setSettingsSize}
+        theme={theme}
+        onThemeChange={(newTheme) => {
+          setTheme(newTheme);
+        }}
+        soundEnabled={soundEnabled}
+        onSoundToggle={(enabled) => {
+          setSoundEnabled(enabled);
+          if (enabled) soundManager.playClick();
+        }}
+        isMinimized={isSettingsMinimized}
+        onMinimize={handleSettingsMinimize}
+        isMaximized={isSettingsMaximized}
+        onMaximize={handleSettingsMaximize}
+      />
     </div>
   );
 }

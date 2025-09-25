@@ -11,6 +11,90 @@
   --color-foreground: var(--foreground);
 }
 
+/* Light theme */
+[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #7c3aed;
+  --terminal-bg: #f1f5f9;
+  --terminal-text: #1e293b;
+  --window-bg: #f8fafc;
+  --window-border: #e2e8f0;
+  --button-bg: #f1f5f9;
+  --button-hover: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  
+  /* Desktop shortcuts */
+  --shortcut-bg: #f1f5f9;
+  --shortcut-hover: #e2e8f0;
+  --shortcut-icon-bg: #e2e8f0;
+  --shortcut-icon-hover: #cbd5e1;
+  --shortcut-text: #1e293b;
+  
+  /* Taskbar */
+  --taskbar-bg: #f1f5f9;
+  --taskbar-border: #e2e8f0;
+  --taskbar-button-bg: #e2e8f0;
+  --taskbar-button-hover: #cbd5e1;
+  --taskbar-text: #1e293b;
+  
+  /* Selection area */
+  --selection-border: #7c3aed;
+  --selection-bg: rgba(124, 58, 237, 0.2);
+  
+  /* Music widget */
+  --music-bg: #f1f5f9;
+  --music-border: #e2e8f0;
+  --music-text: #1e293b;
+  --music-button-bg: #e2e8f0;
+  --music-button-hover: #cbd5e1;
+  
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme (default) */
+[data-theme="dark"] {
+  --background: #000000;
+  --foreground: #a855f7;
+  --terminal-bg: #111827;
+  --terminal-text: #a855f7;
+  --window-bg: #1f2937;
+  --window-border: #374151;
+  --button-bg: #374151;
+  --button-hover: #4b5563;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  
+  /* Desktop shortcuts */
+  --shortcut-bg: #1f2937;
+  --shortcut-hover: #374151;
+  --shortcut-icon-bg: #374151;
+  --shortcut-icon-hover: #4b5563;
+  --shortcut-text: #d1d5db;
+  
+  /* Taskbar */
+  --taskbar-bg: #1f2937;
+  --taskbar-border: #374151;
+  --taskbar-button-bg: #374151;
+  --taskbar-button-hover: #4b5563;
+  --taskbar-text: #d1d5db;
+  
+  /* Selection area */
+  --selection-border: #a855f7;
+  --selection-bg: rgba(168, 85, 247, 0.2);
+  
+  /* Music widget */
+  --music-bg: #1f2937;
+  --music-border: #374151;
+  --music-text: #d1d5db;
+  --music-button-bg: #374151;
+  --music-button-hover: #4b5563;
+  
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -22,12 +106,13 @@ html {
 }
 
 body {
-  background: #000000;
-  color: #a855f7;
+  background: var(--background);
+  color: var(--foreground);
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
   overflow-x: hidden;
   font-size: 14px;
   line-height: 1.4;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Background wallpaper styles */
@@ -50,7 +135,7 @@ body {
 
 /* Dark overlay for better text readability */
 .bg-overlay {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--overlay-bg);
 }
 
 /* Terminal cursor animation */
@@ -147,12 +232,51 @@ input[type="text"] {
 
 /* Terminal window styling */
 .terminal-window {
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  border: 1px solid var(--window-border);
+  background-color: var(--window-bg);
+  color: var(--text-primary);
 }
 
 .terminal-window:hover {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Window animations */
+.window-minimizing {
+  transform: scale(0.8) translateY(20px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.window-maximizing {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.window-closing {
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.window-opening {
+  animation: windowOpen 0.4s ease-out;
+}
+
+@keyframes windowOpen {
+  0% {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05) translateY(-5px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Prevent text selection during drag */
@@ -224,6 +348,279 @@ input[type="text"] {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto;
 }
 
+/* Desktop shortcut theming */
+/* Desktop Shortcuts Theming */
+.desktop-shortcut > div {
+  background-color: var(--shortcut-bg) !important;
+  border: 1px solid var(--window-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.desktop-shortcut > div:hover {
+  background-color: var(--shortcut-hover) !important;
+}
+
+.desktop-shortcut > div:active {
+  transform: scale(0.95);
+}
+
+.desktop-shortcut span {
+  color: var(--shortcut-text);
+}
+
+.desktop-shortcut .w-16 {
+  background-color: var(--shortcut-icon-bg) !important;
+  transition: background-color 0.3s ease;
+}
+
+.desktop-shortcut .w-16:hover {
+  background-color: var(--shortcut-icon-hover) !important;
+}
+
+/* Dragging state */
+.desktop-shortcut.dragging > div {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Selected state */
+.desktop-shortcut.selected > div {
+  border: 2px solid var(--foreground);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.3);
+}
+
+.desktop-shortcut.selected.dragging > div {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(168, 85, 247, 0.3);
+  z-index: 1000;
+}
+
+/* Taskbar Theming */
+.taskbar {
+  background-color: var(--taskbar-bg) !important;
+  border-top: 1px solid var(--taskbar-border) !important;
+}
+
+.taskbar button {
+  background-color: var(--taskbar-button-bg) !important;
+  color: var(--taskbar-text) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.taskbar button:hover {
+  background-color: var(--taskbar-button-hover) !important;
+}
+
+/* Selection Area Theming */
+.selection-area {
+  border: 2px solid var(--selection-border) !important;
+  background-color: var(--selection-bg) !important;
+}
+
+/* Music Widget Theming */
+.music-widget {
+  background-color: var(--music-bg) !important;
+  border: 1px solid var(--music-border) !important;
+  color: var(--music-text) !important;
+}
+
+.music-widget button {
+  background-color: var(--music-button-bg) !important;
+  color: var(--music-text) !important;
+  transition: background-color 0.3s ease;
+}
+
+.music-widget button:hover {
+  background-color: var(--music-button-hover) !important;
+}
+
+/* File Explorer Window Theming */
+.file-explorer-window {
+  background-color: var(--window-bg) !important;
+  border: 1px solid var(--window-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.file-explorer-window .text-gray-300 {
+  color: var(--text-primary) !important;
+}
+
+.file-explorer-window .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.file-explorer-window .bg-gray-700 {
+  background-color: var(--button-bg) !important;
+}
+
+.file-explorer-window .bg-gray-600 {
+  background-color: var(--button-hover) !important;
+}
+
+.file-explorer-window .hover\:bg-gray-600:hover {
+  background-color: var(--button-hover) !important;
+}
+
+.file-explorer-window .hover\:bg-gray-700:hover {
+  background-color: var(--button-hover) !important;
+}
+
+.file-explorer-window .hover\:bg-gray-800:hover {
+  background-color: var(--button-hover) !important;
+}
+
+/* File explorer specific hover states */
+.file-explorer-window button:hover {
+  background-color: var(--button-hover) !important;
+}
+
+.file-explorer-window .file-item:hover {
+  background-color: var(--button-hover) !important;
+}
+
+.file-explorer-window .file-grid-item:hover {
+  background-color: var(--button-hover) !important;
+}
+
+/* Settings Window Theming */
+.settings-window {
+  background-color: var(--window-bg) !important;
+  border: 1px solid var(--window-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.settings-window .text-gray-300 {
+  color: var(--text-primary) !important;
+}
+
+.settings-window .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.settings-window .bg-gray-700 {
+  background-color: var(--button-bg) !important;
+}
+
+.settings-window .bg-gray-600 {
+  background-color: var(--button-hover) !important;
+}
+
+.settings-window .hover\:bg-gray-600:hover {
+  background-color: var(--button-hover) !important;
+}
+
+/* Window Content Areas */
+.terminal-window .terminal-content {
+  background-color: var(--window-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Terminal specific text styling for better visibility */
+.terminal-window .text-purple-400 {
+  color: var(--foreground) !important;
+}
+
+.terminal-window .text-green-400 {
+  color: #16a34a !important; /* Keep green for success messages */
+}
+
+.terminal-window .text-red-400 {
+  color: #dc2626 !important; /* Keep red for error messages */
+}
+
+.terminal-window .text-yellow-400 {
+  color: #ca8a04 !important; /* Keep yellow for warnings */
+}
+
+.terminal-window .text-blue-400 {
+  color: #2563eb !important; /* Keep blue for info */
+}
+
+.terminal-window .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.terminal-window .text-gray-300 {
+  color: var(--text-primary) !important;
+}
+
+.terminal-window .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.file-explorer-window .file-explorer-content {
+  background-color: var(--window-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.settings-window .settings-content {
+  background-color: var(--window-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Window Headers */
+.terminal-header {
+  background-color: var(--button-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.file-explorer-header {
+  background-color: var(--button-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.settings-header {
+  background-color: var(--button-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Window Control Button Hover Effects */
+.terminal-window .w-4.h-4:hover,
+.file-explorer-window .w-4.h-4:hover,
+.settings-window .w-4.h-4:hover {
+  transform: scale(1.1);
+  filter: brightness(0.9);
+}
+
+/* Specific hover colors for window control buttons */
+.terminal-window .w-4.h-4[style*="dc2626"]:hover {
+  background-color: #b91c1c !important;
+}
+
+.terminal-window .w-4.h-4[style*="ca8a04"]:hover {
+  background-color: #a16207 !important;
+}
+
+.terminal-window .w-4.h-4[style*="16a34a"]:hover {
+  background-color: #15803d !important;
+}
+
+.file-explorer-window .w-4.h-4[style*="dc2626"]:hover {
+  background-color: #b91c1c !important;
+}
+
+.file-explorer-window .w-4.h-4[style*="ca8a04"]:hover {
+  background-color: #a16207 !important;
+}
+
+.file-explorer-window .w-4.h-4[style*="16a34a"]:hover {
+  background-color: #15803d !important;
+}
+
+.settings-window .w-4.h-4[style*="dc2626"]:hover {
+  background-color: #b91c1c !important;
+}
+
+.settings-window .w-4.h-4[style*="ca8a04"]:hover {
+  background-color: #a16207 !important;
+}
+
+.settings-window .w-4.h-4[style*="16a34a"]:hover {
+  background-color: #15803d !important;
+}
+
 /* Resize handle cursor */
 .resize-handle {
   cursor: se-resize;
@@ -268,3 +665,66 @@ input[type="text"] {
   transform-origin: bottom;
   min-height: 8px;
 }
+
+/* File explorer download buttons - force larger size */
+.file-explorer-window button:not(.back-button) {
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+  margin: 6px !important;
+  margin-bottom: 12px !important;
+  min-width: 20px !important;
+  min-height: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.file-explorer-window .back-button {
+  margin-left: 12px !important;
+  padding: 6px 9px !important;
+}
+
+/* Settings Panel Buttons */
+.settings-button {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.settings-button-active {
+  background-color: #9333ea;
+  color: #ffffff;
+}
+
+.settings-button-inactive {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.settings-button-inactive:hover {
+  background-color: #4b5563;
+}
+
+.settings-button-enabled {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.settings-button-disabled {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.settings-button-disabled:hover {
+  background-color: #4b5563;
+}
+

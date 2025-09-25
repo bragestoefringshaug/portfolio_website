@@ -1,0 +1,18 @@
+Old Portfolio Website
+
+A simple portfolio website built with HTML, CSS, and JavaScript.
+
+Features:
+- Responsive design
+- Interactive animations
+- Project showcase
+
+Technologies used:
+- HTML
+- CSS
+- Vanilla JavaScript
+
+GitHub: github.com/bragestoefringshaug/bragestoefringshaug.github.io
+Live Demo: bragestoefringshaug.github.io
+
+This was my first portfolio website, showcasing my early web development skills.

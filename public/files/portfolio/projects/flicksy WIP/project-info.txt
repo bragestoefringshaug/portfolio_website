@@ -1,0 +1,19 @@
+Flicksy - Movie Recommendation App
+
+A web application that helps users discover movies based on their preferences.
+
+Features:
+- Movie search and filtering
+- Recommendation engine
+- User ratings and reviews
+- Watchlist functionality
+- Responsive design
+
+Technologies used:
+- React
+- Node.js
+- MongoDB
+- Express.js
+- TMDB API
+
+GitHub: github.com/bragestoefringshaug/flicksy
