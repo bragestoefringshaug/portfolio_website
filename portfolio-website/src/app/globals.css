@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #a855f7;
+}
+
+/* CSS custom properties for theming */
+:root {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #000000;
+  color: #a855f7;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Background wallpaper styles */
+.wallpaper-bg {
+  background-image: url('https://images2.alphacoders.com/137/1372963.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Alternative: Code-themed background */
+.code-wallpaper {
+  background-image: url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Dark overlay for better text readability */
+.bg-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Terminal cursor animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+/* Custom scrollbar for terminal */
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Selection styling */
+::selection {
+  background: #a855f7;
+  color: #000000;
+}
+
+/* Focus styles */
+*:focus {
+  outline: none;
+}
+
+/* Terminal input styling */
+input {
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Remove default input styling */
+input[type="text"] {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Terminal text effects */
+.terminal-text {
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #a855f7;
+}
+
+/* Glitch effect for fun */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch:hover {
+  animation: glitch 0.3s ease-in-out;
+}
+
+/* Draggable terminal styles */
+.terminal-header {
+  cursor: move;
+  user-select: none;
+}
+
+.terminal-header:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  transform: rotate(0deg);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Terminal window styling */
+.terminal-window {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.terminal-window:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Prevent text selection during drag */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Simple bottom-right resize handle */
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  z-index: 10;
+}
+
+.resize-bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: se-resize;
+  background: linear-gradient(-45deg, transparent 30%, rgba(255, 255, 255, 0.3) 30%, rgba(255, 255, 255, 0.3) 50%, transparent 50%);
+}
+
+.resize-bottom-right:hover {
+  background: linear-gradient(-45deg, transparent 30%, rgba(168, 85, 247, 0.5) 30%, rgba(168, 85, 247, 0.5) 50%, transparent 50%);
+}
+
+/* Terminal window focus effect */
+.terminal-window:focus-within {
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.3), 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Resize handle active state */
+.resize-handle:active {
+  background: rgba(168, 85, 247, 0.4) !important;
+}
+
+/* Size indicator in header */
+.size-indicator {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: 8px;
+}
+
+/* Custom cursor styles */
+* {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto;
+}
+
+/* Selection cursor */
+.selecting {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto !important;
+}
+
+/* Terminal cursor */
+.terminal-window {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto;
+}
+
+.terminal-window:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto;
+}
+
+/* Desktop shortcut cursor */
+.desktop-shortcut {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 2l4 12 2-6 6-2-12-4z" fill="%23a855f7" stroke="%23000000" stroke-width="1"/></svg>'), auto;
+}
+
+/* Resize handle cursor */
+.resize-handle {
+  cursor: se-resize;
+}
+
+/* Custom slider styles */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #a855f7;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #a855f7;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Soundwave animation */
+@keyframes soundwave {
+  0%, 100% { 
+    transform: scaleY(0.2);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.soundwave-bar {
+  animation: soundwave 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+  min-height: 8px;
+}
