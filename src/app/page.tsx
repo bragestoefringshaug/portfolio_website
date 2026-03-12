@@ -61,44 +61,73 @@ export default function Home() {
   projects  - View my projects
   skills    - See my technical skills
   contact   - Get in touch
+  github    - Visit my GitHub profile
   hobbies   - My interests and activities
   files     - Open file explorer
-  secret  - Are you brave enough to discover the secret?
+  secret    - Are you brave enough to discover the secret?
   date      - Current date and time
   clear     - Clear the terminal
   exit      - Close the terminal`,
-    
-    about: `Hello! My name is Brage and I am a developer. 
-    I got my first computer when I was 6 years old and I fell in love with it.  
-    Tinkering and creating things with it has been a passion of mine ever since.
-    Now I'm looking to make a career doing what I love.`,
-    
-    projects: `Recent Projects (Details on Github):
-  • Old Portfolio Website
-  • Flicksy, Movie Recommendation App
-  • Portfolio Website`,
-    
+
+    about: `Hello! I'm Brage — developer from Bergen, Norway.
+
+  Got my first computer at age 6 and never looked back.
+  Finishing my Bachelor's in Information Science at the University of Bergen.
+
+  I build AI-powered tools, full-stack apps, and automation systems.
+  Obsessed with what's possible in this AI generation — and shipping fast.`,
+
+    projects: `Projects:
+
+  ⚡ J.A.R.V.I.S. — Discord AI Voice Assistant
+     Claude-powered bot with TTS, live web search, bilingual NLP (EN/NO)
+     https://github.com/bragestoefringshaug/jarvis-discord-bot
+
+  🎬 Flicksy — Movie Discovery App  [W.I.P]
+     Swipe-based mobile app (React Native / Expo)
+     Firebase + TMDB API, self-hosted backend on Raspberry Pi 5
+
+  📷 RAVN — Security Camera System
+     PyQt5 desktop app with face detection and IP camera control
+     https://github.com/bragestoefringshaug/RAVN
+
+  🌐 Portfolio OS — This Website
+     Interactive terminal-style portfolio, self-hosted on Raspberry Pi 5
+     https://github.com/bragestoefringshaug/portfolio_website
+
+  🎮 Overwatch Session Tracker
+     Discord bot tracking gaming sessions with SQLite stats
+     https://github.com/bragestoefringshaug/overwatch-session-tracker`,
+
     skills: `Technical Skills:
-  Languages: Python, JavaScript, HTML
-  Frontend: React, Next.js, Tailwind CSS
-  Backend: Node.js
-  Database: MongoDB, SPARQL, SQLite3
-  Tools: Git, Docker
-  Design: Figma, Photoshop`,
-    
+
+  Languages:  Python · JavaScript / TypeScript · Java / Kotlin · SQL · Swift
+  AI & APIs:  Anthropic Claude · OpenAI · Tool use & streaming · Cursor
+  Frontend:   React · Next.js · Expo (React Native) · Tailwind CSS
+  Backend:    FastAPI · Node.js · aiohttp · discord.py
+  Databases:  SQLite · MongoDB · Firebase / Firestore
+  DevOps:     Docker · Caddy · Raspberry Pi · systemd · Git
+  Other:      Async programming · REST APIs · Computer vision · TTS`,
+
     contact: `Get in Touch:
-  📧 Email: bragestoefringshaug@gmail.com
-  💻 GitHub: github.com/bragestoefringshaug
-  💼 LinkedIn: linkedin.com/in/brage-støfringshaug
-  📸 Instagram: @bragesto`,
-    
+
+  📧 Email:    bragestofringshaug@gmail.com
+  💻 GitHub:   https://github.com/bragestoefringshaug
+  💼 LinkedIn: https://linkedin.com/in/brage-støfringshaug
+  🌐 Site:     https://portfolio.bragesto.no`,
+
+    github: () => {
+      window.open('https://github.com/bragestoefringshaug', '_blank');
+      return 'Opening GitHub... https://github.com/bragestoefringshaug';
+    },
+
     hobbies: `My Hobbies & Interests:
-    
+
   🎮 Gaming with friends
-  💪 Strength Training
-  💻 Coding
-  `,
-    
+  💪 Strength training
+  💻 Building things
+  ⚾ Frisbee golf`,
+
     files: () => {
       setIsFileExplorerOpen(true);
       if (soundEnabled) soundManager.playWindowOpen();
@@ -109,18 +138,18 @@ export default function Home() {
       if (soundEnabled) soundManager.playWindowOpen();
       return "Settings opened! Customize your experience.";
     },
-    
+
     secret: () => {
       setShowVideo(true);
     },
-    
+
     closevideo: () => {
       setShowVideo(false);
       return "Video closed. Back to terminal!";
     },
-    
+
     date: new Date().toLocaleString(),
-    
+
     clear: () => {
       setCommandHistory([]);
       setOutputHistory([]);
@@ -128,7 +157,7 @@ export default function Home() {
       if (soundEnabled) soundManager.playClick();
       return "";
     },
-    
+
     exit: () => {
       handleClose();
       return "Terminal closed. Goodbye!";
@@ -170,6 +199,14 @@ export default function Home() {
 
     if (trimmedCmd === "closevideo") {
       const result = commands.closevideo();
+      if (typeof result === 'string') {
+        setOutputHistory(prev => [...prev, result]);
+      }
+      return;
+    }
+
+    if (trimmedCmd === "github") {
+      const result = commands.github();
       if (typeof result === 'string') {
         setOutputHistory(prev => [...prev, result]);
       }
